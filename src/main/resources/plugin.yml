@@ -11,3 +11,5 @@ commands:
     aliases: [ms, mineablespawner]
     usage: /mineablespawners <give|set|reload>
     description: List spawner related commands.
+  giveconduit:
+    usage: /giveconduit <player>

@@ -2,14 +2,28 @@ package com.dnyferguson.mineablespawners;
 
 import com.dnyferguson.mineablespawners.api.API;
 import com.dnyferguson.mineablespawners.commands.MineableSpawnersCommand;
-import com.dnyferguson.mineablespawners.listeners.*;
+import com.dnyferguson.mineablespawners.commands.addConduit;
+import com.dnyferguson.mineablespawners.listeners.AnvilRenameListener;
+import com.dnyferguson.mineablespawners.listeners.EggChangeListener;
+import com.dnyferguson.mineablespawners.listeners.SpawnerExplodeListener;
+import com.dnyferguson.mineablespawners.listeners.SpawnerMineListener;
+import com.dnyferguson.mineablespawners.listeners.SpawnerPlaceListener;
+import com.dnyferguson.mineablespawners.listeners.WitherBreakSpawnerListener;
 import com.dnyferguson.mineablespawners.metrics.Metrics;
 import com.dnyferguson.mineablespawners.utils.ConfigurationHandler;
 import net.milkbowl.vault.economy.Economy;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.EntityType;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.ArrayList;
 
 public final class MineableSpawners extends JavaPlugin {
     private ConfigurationHandler configurationHandler;
@@ -20,6 +34,7 @@ public final class MineableSpawners extends JavaPlugin {
     public void onEnable() {
         getConfig().options().copyDefaults(true);
         saveDefaultConfig();
+        registerCommands();
 
         configurationHandler = new ConfigurationHandler(this);
 
@@ -74,5 +89,24 @@ public final class MineableSpawners extends JavaPlugin {
 
     public static API getApi() {
         return api;
+    }
+    public ItemStack conduit(NamespacedKey key) {
+        ItemStack spawnerConduit = new ItemStack(Material.EMERALD);
+        ItemMeta meta = spawnerConduit.getItemMeta();
+        if (meta != null) {
+            meta.getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, Math.random());
+        }
+        assert meta != null;
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', getConfigurationHandler().getMessage("spawner-token", "name")));
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.translateAlternateColorCodes('&', getConfigurationHandler().getMessage("spawner-token", "lore")));
+        meta.setLore(lore);
+        spawnerConduit.setItemMeta(meta);
+        return spawnerConduit;
+    }
+
+
+        private void registerCommands(){
+        getCommand("giveConduit").setExecutor(new addConduit());
     }
 }

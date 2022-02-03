@@ -20,6 +20,10 @@ global:
       - '&a %mob% Spawner.'
     lore-enabled: true
 
+spawner-token:
+  name: '&bSpawner Token'
+  lore: '&2With this token, you can mine A Spawner'
+
 #
 # /mineablespawners command
 #
@@ -31,6 +35,7 @@ main:
     set: '&f/mineablespawners set <type> &7(Set the type of the spawner you are looking at)'
     types: '&f/mineablespawners types &7(List available mob types)'
     reload: '&f/mineablespawners reload &7(Reloads configuration)'
+
 
 #
 # /mineablespawners give command
@@ -194,6 +199,7 @@ mining:
     transaction-success: '&eYou have mined a %type% spawner for $%cost%!'
     # Message sent when players didn't get the spawner because of their odds (chance setting)
     out-of-luck: '&cYou were out of luck and didn''t drop the spawner.'
+    no-token: '&cYou do not have the required token to mine a spawner'
 
 #
 # Placing spawners

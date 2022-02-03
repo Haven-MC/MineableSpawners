@@ -3,9 +3,7 @@ package com.dnyferguson.mineablespawners.listeners;
 import com.cryptomorin.xseries.XMaterial;
 import com.dnyferguson.mineablespawners.MineableSpawners;
 import com.dnyferguson.mineablespawners.utils.Chat;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.enchantments.Enchantment;
@@ -16,12 +14,11 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class SpawnerMineListener implements Listener {
     private final MineableSpawners plugin;
@@ -32,8 +29,22 @@ public class SpawnerMineListener implements Listener {
     private double globalPrice = 0;
     private final DecimalFormat df = new DecimalFormat("##.##");
 
+    public ItemStack spawnerConduit(NamespacedKey key) {
+        ItemStack Conduit = new ItemStack(Material.EMERALD);
+        ItemMeta meta = Conduit.getItemMeta();
+        assert meta != null;
+        meta.getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, Math.random());
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&b"));
+        ArrayList<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + "Keep items and experience upon death at the expense of this item.");
+        meta.setLore(lore);
+        Conduit.setItemMeta(meta);
+        return Conduit;
+    }
+
     public SpawnerMineListener(MineableSpawners plugin) {
         this.plugin = plugin;
+
         for (String line : plugin.getConfigurationHandler().getList("mining", "perm-based-chances")) {
             String[] args = line.split(":");
             try {
@@ -60,7 +71,7 @@ public class SpawnerMineListener implements Listener {
     }
 
     @EventHandler (priority = EventPriority.MONITOR)
-    public void onSpawnerMine(BlockBreakEvent e) {
+    public void onSpawnerMine(BlockBreakEvent e, NamespacedKey key) {
         if (e.isCancelled()) {
             return;
         }
@@ -112,15 +123,28 @@ public class SpawnerMineListener implements Listener {
             }
         }
 
+
         // check if right tool
-        Material tool = player.getInventory().getItemInHand().getType();
+        Material tool = player.getInventory().getItemInMainHand().getType();
         if (!plugin.getConfigurationHandler().getList("mining", "tools").contains(tool.name())) {
             handleStillBreak(e, player, plugin.getConfigurationHandler().getMessage("mining", "wrong-tool"), plugin.getConfigurationHandler().getMessage("mining", "requirements.wrong-tool"));
             return;
         }
 
+        //check if player has custom conduit in inventory (where the fuck do i define this)
+        for (ItemStack item : e.getPlayer().getInventory().getContents()){
+            if(item == null) return;
+            if(!item.getType().equals(Material.CONDUIT)) return;
+            ItemMeta meta = item.getItemMeta();
+            if (!meta.getPersistentDataContainer().has(key, PersistentDataType.DOUBLE)) {
+                e.getPlayer().sendMessage(plugin.getConfigurationHandler().getMessage("messages", "no-token"));
+                return;
+            }
+
+        }
+
         // check if requiring silktouch
-        ItemStack itemInHand = player.getInventory().getItemInHand();
+        ItemStack itemInHand = player.getInventory().getItemInMainHand();
         if (plugin.getConfigurationHandler().getBoolean("mining", "require-silktouch") && !player.hasPermission("mineablespawners.nosilk")) {
             int silkTouchLevel = 0;
             if (itemInHand.containsEnchantment(Enchantment.SILK_TOUCH)) {
